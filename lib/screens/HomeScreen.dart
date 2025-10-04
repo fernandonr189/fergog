@@ -1,6 +1,5 @@
-import 'package:fergog/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:gogdl_flutter/src/rust/api/auth.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,7 +12,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool webBrowserOpened = false;
-
+  TextEditingController _loginCodeController = TextEditingController();
+  Session session = Session();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,26 +38,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ]
-                : [const Text("Enter the login code here!"), TextField()],
+                : [
+                    const Text("Enter the login code here!"),
+                    TextField(controller: _loginCodeController),
+                    TextButton(onPressed: _handleLogin, child: Text('Submit')),
+                  ],
           ),
         ),
       ),
     );
   }
 
-  Future<void> _launchUrl() async {
+  void _launchUrl() {
     setState(() {
       webBrowserOpened = true;
     });
-    await launchUrl(
-      Uri.parse(gogAuthUrl).replace(
-        queryParameters: {
-          'client_id': gogClientId,
-          'redirect_uri': gogRedirectUri,
-          'response_type': gogResponseType,
-          'layout': gogLayout,
-        },
-      ),
-    );
+    try {
+      session.openBrowser();
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    String loginCode = _loginCodeController.text;
+    session.setSessionCode(sessionCode: loginCode);
+    session.login();
   }
 }

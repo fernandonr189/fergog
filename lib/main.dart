@@ -1,8 +1,10 @@
 import 'package:fergog/screens/HomeScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:gogdl_flutter/gogdl_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
+  await RustLib.init();
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
   WindowOptions windowOptions = WindowOptions(
