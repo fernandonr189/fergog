@@ -1,5 +1,7 @@
+import 'package:fergog/screens/GamesScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:gogdl_flutter/src/rust/api/auth.dart';
+import 'package:gogdl_flutter/src/rust/api/games_downloader.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,8 +14,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool webBrowserOpened = false;
-  TextEditingController _loginCodeController = TextEditingController();
+  final TextEditingController _loginCodeController = TextEditingController();
   Session session = Session();
+  late GamesDownloader gamesDownloader;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,9 +63,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _handleLogin() async {
-    String loginCode = _loginCodeController.text;
-    session.setSessionCode(sessionCode: loginCode);
-    session.login();
+  void _handleLogin() async {
+    String sessionCode = _loginCodeController.text;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GamesScreen(sessionCode: sessionCode),
+      ),
+    );
   }
 }

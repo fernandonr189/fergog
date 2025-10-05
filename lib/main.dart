@@ -1,5 +1,6 @@
 import 'package:fergog/screens/HomeScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gogdl_flutter/gogdl_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -18,7 +19,7 @@ void main() async {
     await windowManager.show();
     await windowManager.focus();
   });
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
