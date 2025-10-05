@@ -23,7 +23,7 @@ class GogProvider {
     return list.toList();
   }
 
-  Future<GameDetailsResponse> fetchGameDetails(String gameId) async {
+  Future<GogDbGameDetails> fetchGameDetails(String gameId) async {
     var gameDetails = await gamesDownloader!.fetchGameDetails(gameId: gameId);
     return gameDetails;
   }
@@ -61,7 +61,7 @@ final ownedGamesProvider = FutureProvider.family<List<BigInt>, String>((
 
 final gameDetailsProvider =
     FutureProvider.family<
-      GameDetailsResponse,
+      GogDbGameDetails,
       ({String sessionCode, String gameId})
     >((ref, params) async {
       final gog = await ref.watch(gogProvider(params.sessionCode).future);

@@ -33,10 +33,10 @@ class GamesScreen extends StatelessWidget {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount:
                       (MediaQuery.of(context).size.width / tileWidth).toInt(),
-                  childAspectRatio: 2 / 3,
+                  childAspectRatio: 342 / 482,
                 ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => SizedBox.shrink(),
               error: (err, _) =>
                   Center(child: Text("Error, ${err.toString()}")),
             );

@@ -17,18 +17,30 @@ class GameCard extends StatelessWidget {
         );
         return ownedGames.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, _) => Center(child: Text("Error, ${err.toString()}")),
-          data: (GameDetailsResponse data) => data.title != null
-              ? Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                  padding: EdgeInsets.all(8),
-                  child: Text(data.title!),
-                )
-              : SizedBox.shrink(),
+          error: (err, _) => SizedBox.shrink(),
+          data: (GogDbGameDetails data) {
+            return data.productType == "game" && data.title != null
+                ? Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                    ),
+                    margin: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                    padding: EdgeInsets.all(8),
+                    child: Center(
+                      child: data.imageBoxart != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                "https://images.gog-statics.com/${data.imageBoxart!}.jpg",
+                                fit: BoxFit.fitWidth,
+                              ),
+                            )
+                          : Container(),
+                    ),
+                  )
+                : SizedBox.shrink();
+          },
         );
       },
     );
