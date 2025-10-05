@@ -1,7 +1,6 @@
 import 'package:fergog/screens/GamesScreen.dart';
 import 'package:flutter/material.dart';
-import 'package:gogdl_flutter/src/rust/api/auth.dart';
-import 'package:gogdl_flutter/src/rust/api/games_downloader.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,9 +13,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool webBrowserOpened = false;
+  bool errorOccurred = false;
   final TextEditingController _loginCodeController = TextEditingController();
-  Session session = Session();
-  late GamesDownloader gamesDownloader;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +30,11 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: !webBrowserOpened
                 ? [
-                    const Text('To see your games you need to login'),
+                    Text(
+                      errorOccurred
+                          ? 'An error occurred trying to open the browser'
+                          : 'To see your games you need to login',
+                    ),
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                       child: TextButton(
@@ -52,14 +54,30 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _launchUrl() {
+  void _launchUrl() async {
     setState(() {
       webBrowserOpened = true;
     });
     try {
-      session.openBrowser();
+      await launchUrl(
+        Uri.parse("https://auth.gog.com/auth").replace(
+          queryParameters: {
+            "client_id": "46899977096215655",
+            "client_secret":
+                "9d85c43b1482497dbbce61f6e4aa173a433796eeae2ca8c5f6129f2dc4de46d9",
+            "redirect_uri":
+                "https://embed.gog.com/on_login_success?origin=client",
+            "response_type": "code",
+            "layout": "client2",
+          },
+        ),
+      );
     } catch (e) {
       print(e);
+      setState(() {
+        webBrowserOpened = false;
+        errorOccurred = true;
+      });
     }
   }
 
