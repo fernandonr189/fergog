@@ -190,9 +190,11 @@ packages:
   gogdl_flutter:
     dependency: "direct main"
     description:
-      path: "../gogdl_flutter"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "0013306ae16f22911e2097d815a56afcb6d858c0"
+      url: "https://github.com/fernandonr189/gogdl_flutter.git"
+    source: git
     version: "0.0.1"
   http_multi_server:
     dependency: transitive
