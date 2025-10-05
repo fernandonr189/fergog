@@ -197,7 +197,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "0013306ae16f22911e2097d815a56afcb6d858c0"
+      resolved-ref: "8520298b3889214172dd8acdd7cf43805ac9c0d2"
       url: "https://github.com/fernandonr189/gogdl_flutter.git"
     source: git
     version: "0.0.1"
