@@ -36,7 +36,7 @@ class GamesScreen extends StatelessWidget {
                   childAspectRatio: 342 / 482,
                 ),
               ),
-              loading: () => SizedBox.shrink(),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, _) =>
                   Center(child: Text("Error, ${err.toString()}")),
             );
