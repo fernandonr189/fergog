@@ -28,6 +28,17 @@ class GogProvider {
     return gameDetails;
   }
 
+  Future<List<FileDownload>> getDownloadQueue(
+    GogDbGameDetails gameDetails,
+    String path,
+  ) async {
+    return await gamesDownloader!.generateFilesQueue(gameDetails: gameDetails);
+  }
+
+  Stream<DownloadProgress> downloadGame(List<FileDownload> downloads) {
+    return gamesDownloader!.downloadAllFilesWithProgress(files: downloads);
+  }
+
   final String sessionCode;
   GamesDownloader? _gamesDownloader;
   Session? _gogSession;
@@ -66,4 +77,14 @@ final gameDetailsProvider =
     >((ref, params) async {
       final gog = await ref.watch(gogProvider(params.sessionCode).future);
       return gog.fetchGameDetails(params.gameId);
+    });
+
+final downloadStatusProvider =
+    StreamProvider.family<
+      DownloadProgress,
+      ({String sessionCode, List<FileDownload> downloads})
+    >((ref, params) async* {
+      final gog = await ref.watch(gogProvider(params.sessionCode).future);
+      // Return the stream directly from your downloader
+      yield* gog.downloadGame(params.downloads);
     });

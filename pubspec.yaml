@@ -36,9 +36,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   window_manager: ^0.5.1
   gogdl_flutter:
-    git: https://github.com/fernandonr189/gogdl_flutter.git
+    path: ../gogdl_flutter
   flutter_riverpod: ^3.0.1
   url_launcher: ^6.3.2
+  filesystem_picker: ^4.1.0
 
 dev_dependencies:
   flutter_test:

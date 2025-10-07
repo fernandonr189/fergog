@@ -1,19 +1,36 @@
+import 'dart:io';
 import 'package:fergog/provider/gog_provider.dart';
+import 'package:fergog/screens/DownloadScreen.dart';
+import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gogdl_flutter/src/rust/api/games_downloader.dart';
 
-class GameCard extends StatelessWidget {
+class GameCard extends StatefulWidget {
   const GameCard({super.key, required this.gameId, required this.sessionCode});
-
   final String gameId;
   final String sessionCode;
+
+  @override
+  State<StatefulWidget> createState() {
+    return _GameCardState();
+  }
+}
+
+class _GameCardState extends State<GameCard> {
+  GogProvider? _gogProvider;
+  List<FileDownload>? _downloadQueue;
+  String? _path;
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (BuildContext context, WidgetRef ref, Widget? child) {
         final ownedGames = ref.watch(
-          gameDetailsProvider((sessionCode: sessionCode, gameId: gameId)),
+          gameDetailsProvider((
+            sessionCode: widget.sessionCode,
+            gameId: widget.gameId,
+          )),
         );
         return ownedGames.when(
           loading: () => SizedBox.shrink(),
@@ -63,7 +80,9 @@ class GameCard extends StatelessWidget {
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.arrow_downward),
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    await _downloadGame(data, context);
+                                  },
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.play_arrow),
@@ -81,5 +100,50 @@ class GameCard extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _downloadGame(
+    GogDbGameDetails gameDetails,
+    BuildContext context,
+  ) async {
+    if (_path == null) {
+      _path = await FilesystemPicker.openDialog(
+        context: context,
+        fsType: FilesystemType.folder,
+        rootDirectory: Directory("/home"),
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DownloadScreen(
+            fileList: _downloadQueue!,
+            sessionCode: widget.sessionCode,
+          ),
+        ),
+      );
+      return;
+    }
+    if (_path != null && context.mounted) {
+      final container = ProviderScope.containerOf(context, listen: true);
+      if (_gogProvider == null) {
+        final gog = await container.read(
+          gogProvider(widget.sessionCode).future,
+        );
+        _gogProvider = gog;
+      }
+      _downloadQueue ??= await _gogProvider!.getDownloadQueue(
+        gameDetails,
+        _path!,
+      );
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DownloadScreen(
+            fileList: _downloadQueue!,
+            sessionCode: widget.sessionCode,
+          ),
+        ),
+      );
+    }
   }
 }
