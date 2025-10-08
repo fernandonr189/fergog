@@ -1,6 +1,5 @@
 import 'dart:io';
-
-import 'package:fergog/screens/HomeScreen.dart';
+import 'package:fergog/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gogdl_flutter/gogdl_flutter.dart';

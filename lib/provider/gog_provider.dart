@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gogdl_flutter/src/rust/api/gogdl.dart';
+import 'package:gogdl_flutter/gogdl_flutter.dart';
 
 class GogDl {
   final Session session;

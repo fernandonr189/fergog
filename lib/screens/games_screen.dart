@@ -1,8 +1,8 @@
 import 'package:fergog/provider/gog_provider.dart';
-import 'package:fergog/widgets/GameCard.dart';
+import 'package:fergog/widgets/game_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gogdl_flutter/src/rust/api/gogdl.dart';
+import 'package:gogdl_flutter/gogdl_flutter.dart';
 
 class GamesScreen extends ConsumerStatefulWidget {
   const GamesScreen({super.key, required this.sessionCode});
