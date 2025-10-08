@@ -19,7 +19,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
   final double tileWidth = 180;
   bool loggedIn = false;
   GogDl? gogDl;
-  List<GogDbGameDetails> games = [];
+  Stream<List<GogDbGameDetails>> games = Stream.empty();
 
   @override
   void initState() {
@@ -29,11 +29,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
       if (await _login(gogDl!)) {
         await gogDl!.getUser();
         await gogDl!.getDownloader();
-        games = await gogDl!.getOwnedGames();
-        games = games.where((game) {
-          var type = gogGetGameType(gameDetails: game);
-          return type == "game";
-        }).toList();
+        games = gogDl!.getOwnedGames();
         setState(() {
           loggedIn = true;
         });
@@ -54,18 +50,33 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
         child: Consumer(
           builder: (BuildContext context, WidgetRef ref, Widget? child) {
             return loggedIn
-                ? GridView.builder(
-                    itemCount: games.length,
-                    itemBuilder: (context, index) => GameCard(
-                      imageBoxart: gogGetImageBoxart(gameDetails: games[index]),
-                      sessionCode: widget.sessionCode,
-                    ),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          (MediaQuery.of(context).size.width / tileWidth)
-                              .toInt(),
-                      childAspectRatio: 342 / 482,
-                    ),
+                ? StreamBuilder(
+                    builder: (context, snap) {
+                      if (!snap.hasError && snap.hasData) {
+                        return GridView.builder(
+                          itemCount: snap.data!.length,
+                          itemBuilder: (context, index) => GameCard(
+                            imageBoxart: gogGetImageBoxart(
+                              gameDetails: snap.data![index],
+                            ),
+                            sessionCode: widget.sessionCode,
+                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount:
+                                    (MediaQuery.of(context).size.width /
+                                            tileWidth)
+                                        .toInt(),
+                                childAspectRatio: 342 / 482,
+                              ),
+                        );
+                      } else if (snap.hasError) {
+                        return Center(child: Text('Error: ${snap.error}'));
+                      } else {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                    },
+                    stream: games,
                   )
                 : Center(child: CircularProgressIndicator());
           },

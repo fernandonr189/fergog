@@ -43,13 +43,10 @@ class GogDl {
     }
   }
 
-  Future<List<GogDbGameDetails>> getOwnedGames() async {
+  Stream<List<GogDbGameDetails>> getOwnedGames() {
     try {
-      var games = await gogGetOwnedGames(
-        user: user!,
-        downloader: gamesDownloader!,
-      );
-      return games.toList();
+      var games = gogGetOwnedGames(user: user!, downloader: gamesDownloader!);
+      return games;
     } catch (e) {
       throw Exception('Failed to get owned games: $e');
     }

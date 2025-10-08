@@ -36,7 +36,9 @@ class GameCard extends StatelessWidget {
                 bottomLeft: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
-              color: Theme.of(context).colorScheme.surfaceContainer,
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainer.withAlpha(128),
             ),
             height: 56,
             child: Row(
