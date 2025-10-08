@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GameCard extends StatelessWidget {
   const GameCard({
@@ -12,9 +11,9 @@ class GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        return Container(
+    return Stack(
+      children: [
+        Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             image: DecorationImage(
@@ -24,9 +23,33 @@ class GameCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          margin: const EdgeInsets.all(8),
-        );
-      },
+          margin: const EdgeInsets.all(8.5),
+        ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                bottomRight: Radius.circular(8),
+              ),
+              color: Theme.of(context).colorScheme.surfaceContainer,
+            ),
+            height: 56,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+                IconButton(icon: Icon(Icons.arrow_downward), onPressed: () {}),
+                IconButton(icon: Icon(Icons.play_arrow), onPressed: () {}),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
