@@ -1,90 +1,68 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gogdl_flutter/src/rust/api/auth.dart';
-import 'package:gogdl_flutter/src/rust/api/games_downloader.dart';
+import 'package:gogdl_flutter/src/rust/api/gogdl.dart';
 
-class GogProvider {
-  GogProvider({required this.sessionCode});
+class GogDl {
+  final Session session;
+  final Auth auth;
+  User? user;
+  GamesDownloader? gamesDownloader;
 
-  static Future<GogProvider> fromSessionCode(String code) async {
-    GogProvider gogProvider = GogProvider(sessionCode: code);
-    gogProvider.session = Session();
-    gogProvider.session!.setSessionCode(sessionCode: code);
-    await gogProvider.session?.login();
-
-    gogProvider.gamesDownloader = GamesDownloader(
-      session: gogProvider.session!,
-    );
-
-    return gogProvider;
+  GogDl(this.session, this.auth, this.user);
+  factory GogDl.initialize() {
+    Session newSession = gogInitialize();
+    Auth newAuth = gogGetAuth(session: newSession);
+    return GogDl(newSession, newAuth, null);
   }
 
-  Future<List<BigInt>> fetchOwnedGames() async {
-    var list = await gamesDownloader!.fetchOwnedGameIds();
-    return list.toList();
+  Future<void> login(String sessionCode) async {
+    try {
+      await gogLogin(auth: auth, sessionCode: sessionCode);
+    } catch (e) {
+      throw Exception('Failed to login: $e');
+    }
   }
 
-  Future<GogDbGameDetails> fetchGameDetails(String gameId) async {
-    var gameDetails = await gamesDownloader!.fetchGameDetails(gameId: gameId);
-    return gameDetails;
+  Future<void> getDownloader() async {
+    try {
+      GamesDownloader newDownloader = await gogGetDownloader(
+        session: session,
+        auth: auth,
+      );
+      gamesDownloader = newDownloader;
+    } catch (e) {
+      throw Exception('Failed to get downloader: $e');
+    }
   }
 
-  Future<List<FileDownload>> getDownloadQueue(
-    GogDbGameDetails gameDetails,
-    String path,
-  ) async {
-    return await gamesDownloader!.generateFilesQueue(gameDetails: gameDetails);
+  Future<void> getUser() async {
+    try {
+      User newUser = await gogGetUser(session: session, auth: auth);
+      user = newUser;
+    } catch (e) {
+      throw Exception('Failed to get user: $e');
+    }
   }
 
-  Stream<DownloadProgress> downloadGame(List<FileDownload> downloads) {
-    return gamesDownloader!.downloadAllFilesWithProgress(files: downloads);
+  Future<List<BigInt>> getOwnedGames() async {
+    try {
+      var games = await gogGetOwnedGames(user: user!);
+      return games.toList();
+    } catch (e) {
+      throw Exception('Failed to get owned games: $e');
+    }
   }
 
-  final String sessionCode;
-  GamesDownloader? _gamesDownloader;
-  Session? _gogSession;
-
-  set session(Session session) {
-    _gogSession = session;
+  Future<GogDbGameDetails> getGameDetails(String gameId) async {
+    try {
+      GogDbGameDetails details = await gogGetGameDetails(
+        downloader: gamesDownloader!,
+        gameId: gameId,
+      );
+      return details;
+    } catch (e) {
+      throw Exception('Failed to get game details: $e');
+    }
   }
-
-  set gamesDownloader(GamesDownloader gamesDownloader) {
-    _gamesDownloader = gamesDownloader;
-  }
-
-  Session? get session => _gogSession;
-  GamesDownloader? get gamesDownloader => _gamesDownloader;
 }
 
-final gogProvider = FutureProvider.family<GogProvider, String>((
-  ref,
-  code,
-) async {
-  return await GogProvider.fromSessionCode(code);
-});
-
-final ownedGamesProvider = FutureProvider.family<List<BigInt>, String>((
-  ref,
-  code,
-) async {
-  final gog = await ref.watch(gogProvider(code).future);
-  return gog.fetchOwnedGames();
-});
-
-final gameDetailsProvider =
-    FutureProvider.family<
-      GogDbGameDetails,
-      ({String sessionCode, String gameId})
-    >((ref, params) async {
-      final gog = await ref.watch(gogProvider(params.sessionCode).future);
-      return gog.fetchGameDetails(params.gameId);
-    });
-
-final downloadStatusProvider =
-    StreamProvider.family<
-      DownloadProgress,
-      ({String sessionCode, List<FileDownload> downloads})
-    >((ref, params) async* {
-      final gog = await ref.watch(gogProvider(params.sessionCode).future);
-      // Return the stream directly from your downloader
-      yield* gog.downloadGame(params.downloads);
-    });
+final gogDlProvider = Provider<GogDl>((ref) => GogDl.initialize());

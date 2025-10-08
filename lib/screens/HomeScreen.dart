@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleLogin() async {
     String sessionCode = _loginCodeController.text;
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => GamesScreen(sessionCode: sessionCode),
