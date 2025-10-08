@@ -2,21 +2,44 @@ import 'package:fergog/provider/gog_provider.dart';
 import 'package:fergog/widgets/GameCard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gogdl_flutter/src/rust/api/gogdl.dart';
 
-class GamesScreen extends StatefulWidget {
+class GamesScreen extends ConsumerStatefulWidget {
   const GamesScreen({super.key, required this.sessionCode});
 
   final String sessionCode;
 
   @override
-  State<StatefulWidget> createState() {
+  ConsumerState<GamesScreen> createState() {
     return _GamesScreenState();
   }
 }
 
-class _GamesScreenState extends State<GamesScreen> {
+class _GamesScreenState extends ConsumerState<GamesScreen> {
   final double tileWidth = 180;
   bool loggedIn = false;
+  GogDl? gogDl;
+  List<GogDbGameDetails> games = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      gogDl = ref.watch(gogDlProvider);
+      if (await _login(gogDl!)) {
+        await gogDl!.getUser();
+        await gogDl!.getDownloader();
+        games = await gogDl!.getOwnedGames();
+        games = games.where((game) {
+          var type = gogGetGameType(gameDetails: game);
+          return type == "game";
+        }).toList();
+        setState(() {
+          loggedIn = true;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,42 +53,19 @@ class _GamesScreenState extends State<GamesScreen> {
         padding: EdgeInsets.symmetric(horizontal: 8),
         child: Consumer(
           builder: (BuildContext context, WidgetRef ref, Widget? child) {
-            final gogDl = ref.watch(gogDlProvider);
-
-            WidgetsBinding.instance.addPostFrameCallback((_) async {
-              if (await _login(gogDl)) {
-                await gogDl.getUser();
-                setState(() {
-                  loggedIn = true;
-                });
-              }
-            });
-
             return loggedIn
-                ? FutureBuilder(
-                    future: gogDl.getOwnedGames(),
-                    initialData: <BigInt>[],
-                    builder:
-                        (
-                          BuildContext context,
-                          AsyncSnapshot<List<BigInt>> snapshot,
-                        ) {
-                          return GridView.builder(
-                            itemCount: snapshot.data?.length ?? 0,
-                            itemBuilder: (context, index) => GameCard(
-                              gameId: snapshot.data?[index].toString() ?? "",
-                              sessionCode: widget.sessionCode,
-                            ),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount:
-                                      (MediaQuery.of(context).size.width /
-                                              tileWidth)
-                                          .toInt(),
-                                  childAspectRatio: 342 / 482,
-                                ),
-                          );
-                        },
+                ? GridView.builder(
+                    itemCount: games.length,
+                    itemBuilder: (context, index) => GameCard(
+                      imageBoxart: gogGetImageBoxart(gameDetails: games[index]),
+                      sessionCode: widget.sessionCode,
+                    ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount:
+                          (MediaQuery.of(context).size.width / tileWidth)
+                              .toInt(),
+                      childAspectRatio: 342 / 482,
+                    ),
                   )
                 : Center(child: CircularProgressIndicator());
           },

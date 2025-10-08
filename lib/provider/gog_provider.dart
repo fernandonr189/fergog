@@ -43,24 +43,15 @@ class GogDl {
     }
   }
 
-  Future<List<BigInt>> getOwnedGames() async {
+  Future<List<GogDbGameDetails>> getOwnedGames() async {
     try {
-      var games = await gogGetOwnedGames(user: user!);
+      var games = await gogGetOwnedGames(
+        user: user!,
+        downloader: gamesDownloader!,
+      );
       return games.toList();
     } catch (e) {
       throw Exception('Failed to get owned games: $e');
-    }
-  }
-
-  Future<GogDbGameDetails> getGameDetails(String gameId) async {
-    try {
-      GogDbGameDetails details = await gogGetGameDetails(
-        downloader: gamesDownloader!,
-        gameId: gameId,
-      );
-      return details;
-    } catch (e) {
-      throw Exception('Failed to get game details: $e');
     }
   }
 }
