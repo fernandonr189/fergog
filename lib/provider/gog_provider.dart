@@ -51,6 +51,18 @@ class GogDl {
       throw Exception('Failed to get owned games: $e');
     }
   }
+
+  Future<List<GameBuild>> getGameBuilds(BigInt gameId) async {
+    try {
+      var builds = await gogGetGameBuilds(
+        downloader: gamesDownloader!,
+        gameId: gameId,
+      );
+      return builds;
+    } catch (e) {
+      throw Exception('Failed to get game builds: $e');
+    }
+  }
 }
 
 final gogDlProvider = Provider<GogDl>((ref) => GogDl.initialize());

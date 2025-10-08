@@ -1,5 +1,6 @@
 import 'package:fergog/provider/gog_provider.dart';
 import 'package:fergog/widgets/game_card.dart';
+import 'package:fergog/widgets/game_download_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gogdl_flutter/gogdl_flutter.dart';
@@ -56,6 +57,38 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
                         return GridView.builder(
                           itemCount: snap.data!.length,
                           itemBuilder: (context, index) => GameCard(
+                            gameDetails: snap.data![index],
+                            onTapDownload: (data) async {
+                              await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(
+                                    gogGetGameTitle(gameDetails: data),
+                                  ),
+                                  content: GameDownloadModal(
+                                    gameDetails: data,
+                                    gameBuilds: gogDl!.getGameBuilds(
+                                      gogGetGameId(gameDetails: data),
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        // Implement download logic here
+                                      },
+                                      child: Text('Download'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                             imageBoxart: gogGetImageBoxart(
                               gameDetails: snap.data![index],
                             ),
