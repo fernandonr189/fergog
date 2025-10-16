@@ -9,9 +9,11 @@ class GameDownloadModal extends StatefulWidget {
     super.key,
     required this.gameDetails,
     required this.gameBuilds,
+    required this.onTapDownload,
   });
   final GogDbGameDetails gameDetails;
   final Future<List<GameBuild>> gameBuilds;
+  final Function(String) onTapDownload;
 
   @override
   State<GameDownloadModal> createState() => _GameDownloadModalState();
@@ -72,7 +74,11 @@ class _GameDownloadModalState extends State<GameDownloadModal> {
                           subtitle: Text(gogGetBuildDate(build: build)),
                           trailing: IconButton(
                             icon: Icon(Icons.download),
-                            onPressed: () async {},
+                            onPressed: () {
+                              widget.onTapDownload(
+                                gogGetBuildLink(build: build),
+                              );
+                            },
                           ),
                         );
                       },

@@ -63,6 +63,22 @@ class GogDl {
       throw Exception('Failed to get game builds: $e');
     }
   }
+
+  Stream<DownloadProgress> downloadGame(
+    GogDbGameDetails gameId,
+    String buildLink,
+  ) {
+    try {
+      var download = downloadBuild(
+        downloader: gamesDownloader!,
+        gameDetails: gameId,
+        buildLink: buildLink,
+      );
+      return download;
+    } catch (e) {
+      throw Exception('Failed to download game: $e');
+    }
+  }
 }
 
 final gogDlProvider = Provider<GogDl>((ref) => GogDl.initialize());
