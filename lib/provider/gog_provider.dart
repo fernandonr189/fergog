@@ -6,6 +6,9 @@ class GogDl {
   final Auth auth;
   User? user;
   GamesDownloader? gamesDownloader;
+  List<Stream<DownloadProgress>> downloadProgressStreams = [];
+
+  List<Stream<DownloadProgress>> get downloads => downloadProgressStreams;
 
   GogDl(this.session, this.auth, this.user);
   factory GogDl.initialize() {
@@ -64,17 +67,14 @@ class GogDl {
     }
   }
 
-  Stream<DownloadProgress> downloadGame(
-    GogDbGameDetails gameId,
-    String buildLink,
-  ) {
+  void downloadGame(GogDbGameDetails gameId, String buildLink) {
     try {
       var download = downloadBuild(
         downloader: gamesDownloader!,
         gameDetails: gameId,
         buildLink: buildLink,
       );
-      return download;
+      downloadProgressStreams.add(download);
     } catch (e) {
       throw Exception('Failed to download game: $e');
     }

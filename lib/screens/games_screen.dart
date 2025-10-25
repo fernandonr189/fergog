@@ -21,7 +21,6 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
   bool loggedIn = false;
   GogDl? gogDl;
   Stream<List<GogDbGameDetails>> games = Stream.empty();
-  List<({GogDbGameDetails details, String link})> gameDetails = [];
   @override
   void initState() {
     super.initState();
@@ -48,89 +47,80 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
       ),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 8),
-        child: Consumer(
-          builder: (BuildContext context, WidgetRef ref, Widget? child) {
-            return loggedIn
-                ? Stack(
-                    children: [
-                      StreamBuilder(
-                        builder: (context, snap) {
-                          if (!snap.hasError && snap.hasData) {
-                            return GridView.builder(
-                              itemCount: snap.data!.length,
-                              itemBuilder: (context, index) => GameCard(
+        child: Container(
+          child: loggedIn
+              ? Stack(
+                  children: [
+                    StreamBuilder(
+                      builder: (context, snap) {
+                        if (!snap.hasError && snap.hasData) {
+                          return GridView.builder(
+                            itemCount: snap.data!.length,
+                            itemBuilder: (context, index) => GameCard(
+                              gameDetails: snap.data![index],
+                              onTapDownload: (data) async {
+                                await _showDialog(context, data);
+                              },
+                              imageBoxart: gogGetImageBoxart(
                                 gameDetails: snap.data![index],
-                                onTapDownload: (data) async {
-                                  await _showDialog(context, data);
-                                },
-                                imageBoxart: gogGetImageBoxart(
-                                  gameDetails: snap.data![index],
-                                ),
-                                sessionCode: widget.sessionCode,
                               ),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount:
-                                        (MediaQuery.of(context).size.width /
-                                                tileWidth)
-                                            .toInt(),
-                                    childAspectRatio: 342 / 482,
-                                  ),
-                            );
-                          } else if (snap.hasError) {
-                            return Center(child: Text('Error: ${snap.error}'));
-                          } else {
-                            return Center(child: CircularProgressIndicator());
-                          }
-                        },
-                        stream: games,
-                      ),
-                      Positioned(
-                        bottom: 16,
-                        right: 16,
-                        child: Container(
-                          width: MediaQuery.of(context).size.width / 2,
-                          height: MediaQuery.of(context).size.height / 3,
-                          child: ListView.builder(
-                            itemCount: gameDetails.length,
-                            itemBuilder: (context, index) {
-                              var game = gameDetails[index];
-                              return StreamBuilder(
-                                stream: gogDl!.downloadGame(
-                                  game.details,
-                                  game.link,
+                              sessionCode: widget.sessionCode,
+                            ),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount:
+                                      (MediaQuery.of(context).size.width /
+                                              tileWidth)
+                                          .toInt(),
+                                  childAspectRatio: 342 / 482,
                                 ),
-                                builder:
-                                    (
-                                      BuildContext context,
-                                      AsyncSnapshot<DownloadProgress> snapshot,
-                                    ) {
-                                      if (snapshot.hasData &&
-                                          !snapshot.hasError) {
-                                        var progress = snapshot.data!;
-                                        return ListTile(
-                                          title: Text(
-                                            gogGetGameTitle(
-                                              gameDetails: game.details,
-                                            ),
-                                          ),
-                                          subtitle: Text(
-                                            '${progress.downloadProgress} / ${progress.totalBytes}',
-                                          ),
-                                        );
-                                      } else {
-                                        return SizedBox.shrink();
-                                      }
-                                    },
-                              );
-                            },
-                          ),
+                          );
+                        } else if (snap.hasError) {
+                          return Center(child: Text('Error: ${snap.error}'));
+                        } else {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                      },
+                      stream: games,
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      right: 16,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width / 2,
+                        height: MediaQuery.of(context).size.height / 3,
+                        child: ListView.builder(
+                          itemCount: gogDl!.downloads.length,
+                          itemBuilder: (context, index) {
+                            var download = gogDl!.downloads[index];
+                            return StreamBuilder(
+                              stream: download,
+                              builder:
+                                  (
+                                    BuildContext context,
+                                    AsyncSnapshot<DownloadProgress> snapshot,
+                                  ) {
+                                    if (snapshot.hasData &&
+                                        !snapshot.hasError) {
+                                      var progress = snapshot.data!;
+                                      return ListTile(
+                                        title: Text(progress.gameName),
+                                        subtitle: Text(
+                                          '${progress.downloadProgress} / ${progress.totalBytes}',
+                                        ),
+                                      );
+                                    } else {
+                                      return SizedBox.shrink();
+                                    }
+                                  },
+                            );
+                          },
                         ),
                       ),
-                    ],
-                  )
-                : Center(child: CircularProgressIndicator());
-          },
+                    ),
+                  ],
+                )
+              : Center(child: CircularProgressIndicator()),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -151,9 +141,7 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
           gameDetails: data,
           gameBuilds: gogDl!.getGameBuilds(gogGetGameId(gameDetails: data)),
           onTapDownload: (build) {
-            setState(() {
-              gameDetails.add((details: data, link: build));
-            });
+            gogDl!.downloadGame(data, build);
           },
         ),
       ),
